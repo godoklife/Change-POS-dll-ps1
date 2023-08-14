@@ -6,6 +6,48 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Exit
 }
 
+############################## 팡션 ##############################
+
+function global:ProcessSelectedItem {
+    $is112Exist = Test-Path -Path $folderPath112 -PathType Container
+    $is114Exist = Test-Path -Path $folderPath114 -PathType Container
+    $nonX86Exist = Test-Path -Path $folderPathNonX86 -PathType Container
+
+    if (-not $is112Exist) {
+        [System.Windows.Forms.MessageBox]::Show('ERROR(112)', 'ERROR')
+        return
+    } elseif (-not $is114Exist) {
+        [System.Windows.Forms.MessageBox]::Show('ERROR(112)', 'ERROR')
+        return
+    } elseif (-not $nonX86Exist) {
+        New-Item -Path $folderPathNonX86 -ItemType Directory
+    }
+
+    switch ($listBox.SelectedItem) {
+        $listBox.Items[0] {
+            try {
+                Copy-Item 'C:\Program Files (x86)\Microsoft Point Of Service_Bak\SDK\1.12\*' 'C:\Program Files (x86)\Microsoft Point Of Service\SDK' -Force
+                Copy-Item 'C:\Program Files (x86)\Microsoft Point Of Service_Bak\SDK\1.12\*' 'C:\Program Files\Microsoft Point Of Service\SDK' -Force    
+            } catch {
+                $errorMessage = $_.Exception.Message
+                [System.Windows.Forms.MessageBox]::Show($errorMessage, 'ERROR')
+            }
+        }
+        $listBox.Items[1] {
+            try {
+                Copy-Item 'C:\Program Files (x86)\Microsoft Point Of Service_Bak\SDK\1.14\*' 'C:\Program Files (x86)\Microsoft Point Of Service\SDK' -Force    
+                Copy-Item 'C:\Program Files (x86)\Microsoft Point Of Service_Bak\SDK\1.14\*' 'C:\Program Files\Microsoft Point Of Service\SDK' -Force    
+            } catch {
+                $errorMessage = $_.Exception.Message
+                [System.Windows.Forms.MessageBox]::Show($errorMessage, 'ERROR')
+            }
+        }
+    }
+}
+
+############################## 팡션 ##############################
+
+
 $versionInfo = Get-ItemProperty -Path "C:\Program Files (x86)\Microsoft Point Of Service\SDK\Microsoft.PointOfService.dll" | Select-Object -ExpandProperty VersionInfo
 $fileVersion = $versionInfo.FileVersion
 
@@ -59,6 +101,11 @@ $listBox.Height = 30
 [void] $listBox.Items.Add('PointOfService 1.12')
 [void] $listBox.Items.Add('PointOfService 1.144444')
 
+$listBox.Add_MouseDoubleClick({
+    ProcessSelectedItem
+    $form.Dispose()
+})
+
 
 $form.Controls.Add($listBox)
 
@@ -66,58 +113,6 @@ $form.Topmost = $true
 
 $result = $form.ShowDialog()
 
-if ($result -eq [System.Windows.Forms.DialogResult]::OK)
-{
-    $is112Exist = Test-Path -Path $folderPath112 -PathType Container
-    $is114Exist = Test-Path -Path $folderPath114 -PathType Container
-    $nonX86Exist = Test-Path -Path $folderPathNonX86 -PathType Container
-
-    if(-not $is112Exist)
-    {
-        [System.Windows.Forms.MessageBox]::Show('ERROR(112)','ERROR')
-        return
-    }
-    elseif (-not $is114Exist)   
-    {
-        [System.Windows.Forms.MessageBox]::Show('ERROR(112)','ERROR')
-        return
-    }
-    elseif(-not $nonX86Exist)
-    {
-        # [System.Windows.Forms.MessageBox]::Show("creating dir: $folderpathNonX86",'ERROR')
-        New-Item -Path $folderPathNonX86 -ItemType Directory
-    }
-
-    switch ($listBox.SelectedItem) 
-    {
-        $listBox.Items[0]
-        {
-            try 
-            {
-                Copy-Item 'C:\Program Files (x86)\Microsoft Point Of Service_Bak\SDK\1.12\*' 'C:\Program Files (x86)\Microsoft Point Of Service\SDK' -Force
-                Copy-Item 'C:\Program Files (x86)\Microsoft Point Of Service_Bak\SDK\1.12\*' 'C:\Program Files\Microsoft Point Of Service\SDK' -Force    
-            }
-            catch 
-            {
-                $errorMessage = $_.Exception.Message
-                [System.Windows.Forms.MessageBox]::Show($errorMessage,'ERROR')
-            }
-            
-        }
-        $listBox.Items[1]
-        {
-            try 
-            {
-                Copy-Item 'C:\Program Files (x86)\Microsoft Point Of Service_Bak\SDK\1.14\*' 'C:\Program Files (x86)\Microsoft Point Of Service\SDK' -Force    
-                Copy-Item 'C:\Program Files (x86)\Microsoft Point Of Service_Bak\SDK\1.14\*' 'C:\Program Files\Microsoft Point Of Service\SDK' -Force    
-            }
-            catch 
-            {
-                $errorMessage = $_.Exception.Message
-                [System.Windows.Forms.MessageBox]::Show($errorMessage,'ERROR')
-            }
-        }
-    }
+if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+    ProcessSelectedItem
 }
-
-
